@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Industrial styling for form inputs */
+input, select, textarea {
+  @apply border-2 border-slate-brand/30 rounded px-3 py-2 focus:border-deep-blue focus:outline-none transition-colors;
+}
+
+/* Button base styles */
+.btn-primary {
+  @apply bg-action-orange text-white font-bold py-2 px-4 rounded hover:bg-orange-600 transition-colors;
+}
+
+.btn-secondary {
+  @apply bg-deep-blue text-white font-bold py-2 px-4 rounded hover:bg-blue-900 transition-colors;
+}
