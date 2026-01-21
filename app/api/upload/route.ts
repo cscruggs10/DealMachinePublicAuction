@@ -1,46 +1,32 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import cloudinary from '@/lib/cloudinary'
 
-export async function POST(request: NextRequest) {
+export const dynamic = 'force-dynamic'
+
+// Generate a signed upload signature for direct client-to-Cloudinary upload
+export async function GET() {
   try {
-    const formData = await request.formData()
-    const file = formData.get('file') as File | null
+    const timestamp = Math.round(new Date().getTime() / 1000)
 
-    if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 })
-    }
-
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-
-    // Upload to Cloudinary
-    const result = await new Promise<{ secure_url: string; public_id: string }>(
-      (resolve, reject) => {
-        cloudinary.uploader
-          .upload_stream(
-            {
-              resource_type: 'video',
-              folder: 'deal-machine',
-              allowed_formats: ['mp4', 'mov', 'avi', 'webm'],
-            },
-            (error, result) => {
-              if (error) reject(error)
-              else resolve(result as { secure_url: string; public_id: string })
-            }
-          )
-          .end(buffer)
-      }
+    const signature = cloudinary.utils.api_sign_request(
+      {
+        timestamp,
+        folder: 'deal-machine',
+      },
+      process.env.CLOUDINARY_API_SECRET!
     )
 
     return NextResponse.json({
-      url: result.secure_url,
-      publicId: result.public_id,
+      signature,
+      timestamp,
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+      apiKey: process.env.CLOUDINARY_API_KEY,
+      folder: 'deal-machine',
     })
   } catch (error) {
-    console.error('Upload error:', error)
+    console.error('Signature error:', error)
     return NextResponse.json(
-      { error: 'Failed to upload video' },
+      { error: 'Failed to generate upload signature' },
       { status: 500 }
     )
   }

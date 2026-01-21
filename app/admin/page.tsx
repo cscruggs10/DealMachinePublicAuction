@@ -129,21 +129,37 @@ export default function AdminDashboard() {
     setMessage(null)
 
     try {
+      // Get upload signature from our API
+      const signatureRes = await fetch('/api/upload')
+      if (!signatureRes.ok) {
+        throw new Error('Failed to get upload signature')
+      }
+      const { signature, timestamp, cloudName, apiKey, folder } = await signatureRes.json()
+
+      // Upload directly to Cloudinary
       const formData = new FormData()
       formData.append('file', file)
+      formData.append('signature', signature)
+      formData.append('timestamp', timestamp.toString())
+      formData.append('api_key', apiKey)
+      formData.append('folder', folder)
+      formData.append('resource_type', 'video')
 
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      })
+      const cloudinaryRes = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      )
 
-      if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.error || 'Failed to upload video')
+      if (!cloudinaryRes.ok) {
+        const error = await cloudinaryRes.json()
+        throw new Error(error.error?.message || 'Failed to upload video')
       }
 
-      const data = await res.json()
-      setVehicleForm({ ...vehicleForm, videoUrl: data.url })
+      const data = await cloudinaryRes.json()
+      setVehicleForm({ ...vehicleForm, videoUrl: data.secure_url })
       setMessage({ type: 'success', text: 'Video uploaded successfully!' })
     } catch (err) {
       setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to upload video' })
