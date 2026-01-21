@@ -1,7 +1,8 @@
-FROM node:20-alpine AS base
+# Use Debian-based Node image for better Prisma compatibility
+FROM node:20-slim AS base
 
-# Install OpenSSL and other dependencies needed by Prisma
-RUN apk add --no-cache openssl libc6-compat
+# Install OpenSSL and other dependencies
+RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies only when needed
 FROM base AS deps
