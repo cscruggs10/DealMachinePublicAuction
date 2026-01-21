@@ -58,6 +58,7 @@ export default function AdminDashboard() {
   const [finalPrice, setFinalPrice] = useState('')
   const [relistModal, setRelistModal] = useState<Vehicle | null>(null)
   const [relistEventId, setRelistEventId] = useState('')
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     fetchSaleEvents()
@@ -117,6 +118,37 @@ export default function AdminDashboard() {
       setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to decode VIN' })
     } finally {
       setDecoding(false)
+    }
+  }
+
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    setMessage(null)
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed to upload video')
+      }
+
+      const data = await res.json()
+      setVehicleForm({ ...vehicleForm, videoUrl: data.url })
+      setMessage({ type: 'success', text: 'Video uploaded successfully!' })
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to upload video' })
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -587,15 +619,28 @@ export default function AdminDashboard() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Video URL
+                  Video
                 </label>
-                <input
-                  type="url"
-                  value={vehicleForm.videoUrl}
-                  onChange={(e) => setVehicleForm({ ...vehicleForm, videoUrl: e.target.value })}
-                  className="w-full"
-                  placeholder="https://..."
-                />
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    accept="video/mp4,video/mov,video/avi,video/webm"
+                    onChange={handleVideoUpload}
+                    disabled={uploading}
+                    className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-deep-blue file:text-white file:font-semibold hover:file:bg-blue-900 file:cursor-pointer disabled:opacity-50"
+                  />
+                  {uploading && (
+                    <p className="text-sm text-action-orange">Uploading video...</p>
+                  )}
+                  {vehicleForm.videoUrl && !uploading && (
+                    <div className="flex items-center gap-2 text-sm text-green-600">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      Video uploaded
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
