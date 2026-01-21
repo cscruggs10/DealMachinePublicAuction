@@ -5,6 +5,7 @@ export async function GET() {
   try {
     const vehicles = await prisma.vehicle.findMany({
       orderBy: { createdAt: 'desc' },
+      include: { saleEvent: true },
     })
     return NextResponse.json(vehicles)
   } catch (error) {
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    const { vin, year, make, model, trim, status, aiDisclosures, videoUrl, price } = body
+    const { vin, year, make, model, trim, status, aiDisclosures, videoUrl, price, saleEventId } = body
 
     if (!vin || !year || !make || !model) {
       return NextResponse.json(
@@ -51,7 +52,9 @@ export async function POST(request: NextRequest) {
         aiDisclosures: aiDisclosures || null,
         videoUrl: videoUrl || null,
         price: price ? parseFloat(price) : null,
+        saleEventId: saleEventId || null,
       },
+      include: { saleEvent: true },
     })
 
     return NextResponse.json(vehicle, { status: 201 })

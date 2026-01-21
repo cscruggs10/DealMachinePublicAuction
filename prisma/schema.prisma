@@ -28,21 +28,25 @@ model SaleEvent {
   endDate      DateTime
   externalLink String?
   status       SaleEventStatus @default(UPCOMING)
+  vehicles     Vehicle[]
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 }
 
 model Vehicle {
-  id            String        @id @default(cuid())
-  vin           String        @unique
-  year          Int
-  make          String
-  model         String
-  trim          String?
-  status        VehicleStatus @default(DRAFT)
-  aiDisclosures String?       @db.Text
-  videoUrl      String?
-  price         Decimal?      @db.Decimal(10, 2)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id             String        @id @default(cuid())
+  vin            String        @unique
+  year           Int
+  make           String
+  model          String
+  trim           String?
+  status         VehicleStatus @default(DRAFT)
+  aiDisclosures  String?       @db.Text
+  videoUrl       String?
+  price          Decimal?      @db.Decimal(10, 2)
+  finalSalePrice Decimal?      @db.Decimal(10, 2)
+  saleEvent      SaleEvent?    @relation(fields: [saleEventId], references: [id])
+  saleEventId    String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 }

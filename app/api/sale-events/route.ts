@@ -5,6 +5,7 @@ export async function GET() {
   try {
     const saleEvents = await prisma.saleEvent.findMany({
       orderBy: { startDate: 'desc' },
+      include: { _count: { select: { vehicles: true } } },
     })
     return NextResponse.json(saleEvents)
   } catch (error) {
