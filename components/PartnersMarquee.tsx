@@ -1,23 +1,51 @@
 'use client'
 
-const partners = [
+import { useState } from 'react'
+
+interface Partner {
+  name: string
+  shortName: string
+  logo?: string
+  category: 'Credit Union' | 'Finance' | 'Dealer'
+}
+
+const partners: Partner[] = [
   // Credit Unions
-  { name: 'Redstone Federal Credit Union', logo: 'https://logo.clearbit.com/redfcu.org', domain: 'redfcu.org' },
-  { name: 'America First Credit Union', logo: 'https://logo.clearbit.com/americafirst.com', domain: 'americafirst.com' },
-  { name: 'Navy Federal', logo: 'https://logo.clearbit.com/navyfederal.org', domain: 'navyfederal.org' },
-  { name: 'Pentagon Federal', logo: 'https://logo.clearbit.com/penfed.org', domain: 'penfed.org' },
+  { name: 'Redstone Federal Credit Union', shortName: 'Redstone FCU', category: 'Credit Union' },
+  { name: 'America First Credit Union', shortName: 'America First', category: 'Credit Union' },
+  { name: 'Navy Federal Credit Union', shortName: 'Navy Federal', category: 'Credit Union' },
+  { name: 'Pentagon Federal Credit Union', shortName: 'PenFed', category: 'Credit Union' },
   // Finance Giants
-  { name: 'Chase Auto', logo: 'https://logo.clearbit.com/chase.com', domain: 'chase.com' },
-  { name: 'Ally Financial', logo: 'https://logo.clearbit.com/ally.com', domain: 'ally.com' },
-  { name: 'Santander', logo: 'https://logo.clearbit.com/santander.com', domain: 'santander.com' },
-  { name: 'Capital One', logo: 'https://logo.clearbit.com/capitalone.com', domain: 'capitalone.com' },
-  { name: 'Wells Fargo', logo: 'https://logo.clearbit.com/wellsfargo.com', domain: 'wellsfargo.com' },
+  { name: 'Chase Auto Finance', shortName: 'Chase', category: 'Finance' },
+  { name: 'Ally Financial', shortName: 'Ally', category: 'Finance' },
+  { name: 'Santander Consumer USA', shortName: 'Santander', category: 'Finance' },
+  { name: 'Capital One Auto Finance', shortName: 'Capital One', category: 'Finance' },
+  { name: 'Wells Fargo Auto', shortName: 'Wells Fargo', category: 'Finance' },
   // Major Dealers & Buyers
-  { name: 'Carvana', logo: 'https://logo.clearbit.com/carvana.com', domain: 'carvana.com' },
-  { name: 'DriveTime', logo: 'https://logo.clearbit.com/drivetime.com', domain: 'drivetime.com' },
-  { name: 'CarMax', logo: 'https://logo.clearbit.com/carmax.com', domain: 'carmax.com' },
-  { name: 'AutoNation', logo: 'https://logo.clearbit.com/autonation.com', domain: 'autonation.com' },
+  { name: 'Carvana', shortName: 'Carvana', category: 'Dealer' },
+  { name: 'DriveTime Automotive', shortName: 'DriveTime', category: 'Dealer' },
+  { name: 'CarMax', shortName: 'CarMax', category: 'Dealer' },
+  { name: 'AutoNation', shortName: 'AutoNation', category: 'Dealer' },
 ]
+
+const categoryColors = {
+  'Credit Union': 'bg-blue-600',
+  'Finance': 'bg-green-600',
+  'Dealer': 'bg-purple-600',
+}
+
+function PartnerCard({ partner }: { partner: Partner }) {
+  return (
+    <div className="bg-white rounded-lg shadow-sm p-4 min-w-[180px] h-24 flex flex-col items-center justify-center border border-gray-200 hover:shadow-lg hover:border-action-orange transition-all duration-300">
+      <span className="font-bold text-slate-brand text-center leading-tight">
+        {partner.shortName}
+      </span>
+      <span className={`text-xs text-white px-2 py-0.5 rounded-full mt-2 ${categoryColors[partner.category]}`}>
+        {partner.category}
+      </span>
+    </div>
+  )
+}
 
 export default function PartnersMarquee() {
   // Double the partners array for seamless loop
@@ -31,25 +59,10 @@ export default function PartnersMarquee() {
 
       {/* Scrolling container */}
       <div className="flex overflow-hidden">
-        <div className="flex animate-marquee items-center">
+        <div className="flex animate-marquee items-center gap-6 py-2">
           {doubledPartners.map((partner, index) => (
-            <div
-              key={`${partner.name}-${index}`}
-              className="flex-shrink-0 mx-6"
-            >
-              <div className="bg-white rounded-lg shadow-sm p-4 min-w-[160px] h-20 flex items-center justify-center border border-gray-200 hover:shadow-md transition-shadow">
-                <img
-                  src={partner.logo}
-                  alt={partner.name}
-                  className="max-h-12 max-w-[140px] object-contain grayscale hover:grayscale-0 transition-all duration-300"
-                  onError={(e) => {
-                    // Fallback to text if logo fails to load
-                    const target = e.target as HTMLImageElement
-                    target.style.display = 'none'
-                    target.parentElement!.innerHTML = `<span class="text-sm font-semibold text-gray-600 text-center">${partner.name}</span>`
-                  }}
-                />
-              </div>
+            <div key={`${partner.name}-${index}`} className="flex-shrink-0">
+              <PartnerCard partner={partner} />
             </div>
           ))}
         </div>
