@@ -92,15 +92,17 @@ export default async function ResultsPage() {
               {vehicles.map((vehicle, index) => (
                 <tr
                   key={vehicle.id}
-                  className={`border-b ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}`}
+                  className={`border-b ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-blue-50 transition-colors`}
                 >
                   <td className="p-4">
-                    <p className="font-medium text-slate-brand">
-                      {vehicle.year} {vehicle.make} {vehicle.model}
-                    </p>
-                    {vehicle.trim && (
-                      <p className="text-sm text-gray-500">{vehicle.trim}</p>
-                    )}
+                    <Link href={`/vehicles/${vehicle.id}`} className="block">
+                      <p className="font-medium text-slate-brand hover:text-deep-blue">
+                        {vehicle.year} {vehicle.make} {vehicle.model}
+                      </p>
+                      {vehicle.trim && (
+                        <p className="text-sm text-gray-500">{vehicle.trim}</p>
+                      )}
+                    </Link>
                   </td>
                   <td className="p-4 font-mono text-sm text-gray-500">
                     {vehicle.vin}

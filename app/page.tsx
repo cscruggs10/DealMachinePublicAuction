@@ -118,9 +118,10 @@ export default async function Home() {
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {vehicles.map((vehicle) => (
-            <div
+            <Link
               key={vehicle.id}
-              className="bg-white rounded-lg shadow-lg overflow-hidden border-t-4 border-action-orange"
+              href={`/vehicles/${vehicle.id}`}
+              className="bg-white rounded-lg shadow-lg overflow-hidden border-t-4 border-action-orange hover:shadow-xl transition-shadow block"
             >
               <div className="p-6">
                 <div className="flex items-start justify-between mb-3">
@@ -152,12 +153,7 @@ export default async function Home() {
                 )}
 
                 {vehicle.videoUrl && (
-                  <a
-                    href={vehicle.videoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center text-deep-blue hover:text-action-orange text-sm font-medium"
-                  >
+                  <span className="inline-flex items-center text-deep-blue text-sm font-medium">
                     <svg
                       className="w-4 h-4 mr-1"
                       fill="currentColor"
@@ -165,8 +161,8 @@ export default async function Home() {
                     >
                       <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
                     </svg>
-                    Watch Video
-                  </a>
+                    Video Available
+                  </span>
                 )}
               </div>
 
@@ -177,7 +173,7 @@ export default async function Home() {
                   </p>
                 </div>
               )}
-            </div>
+            </Link>
           ))}
         </div>
       )}
