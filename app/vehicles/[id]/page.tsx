@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import CopyVin from '@/components/CopyVin'
 
 export const dynamic = 'force-dynamic'
 
@@ -143,8 +144,10 @@ export default async function VehicleDetailPage({ params }: Props) {
                   </div>
                 )}
                 <div className="pt-3 border-t">
-                  <p className="text-gray-500 text-sm mb-1">VIN</p>
-                  <p className="font-mono text-sm bg-gray-100 p-2 rounded break-all">{vehicle.vin}</p>
+                  <p className="text-gray-500 text-sm mb-2">VIN</p>
+                  <div className="bg-gray-100 p-2 rounded">
+                    <CopyVin vin={vehicle.vin} className="break-all" />
+                  </div>
                 </div>
               </div>
             </div>
