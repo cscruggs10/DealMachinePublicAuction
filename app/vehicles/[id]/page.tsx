@@ -99,6 +99,17 @@ export default async function VehicleDetailPage({ params }: Props) {
                 </>
               )}
 
+              {vehicle.saleEvent?.externalLink && vehicle.status !== 'SOLD' && (
+                <a
+                  href={vehicle.saleEvent.externalLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full bg-action-orange text-white text-center py-4 rounded-lg font-bold text-lg hover:bg-orange-600 transition-colors mt-4"
+                >
+                  Bid Now
+                </a>
+              )}
+
               {vehicle.saleEvent && (
                 <div className="mt-4 pt-4 border-t">
                   <p className="text-sm text-gray-500">Sale Event</p>
@@ -106,16 +117,6 @@ export default async function VehicleDetailPage({ params }: Props) {
                   <p className="text-sm text-gray-600">
                     {new Date(vehicle.saleEvent.startDate).toLocaleDateString()} - {new Date(vehicle.saleEvent.endDate).toLocaleDateString()}
                   </p>
-                  {vehicle.saleEvent.externalLink && (
-                    <a
-                      href={vehicle.saleEvent.externalLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-block mt-3 btn-primary text-sm"
-                    >
-                      View Auction Details
-                    </a>
-                  )}
                 </div>
               )}
             </div>

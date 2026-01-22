@@ -178,11 +178,23 @@ export default async function Home() {
                 </div>
 
                 {vehicle.aiDisclosures && (
-                  <div className="bg-gray-50 rounded p-3">
+                  <div className="bg-gray-50 rounded p-3 mb-4">
                     <p className="text-xs text-gray-600 line-clamp-3">
                       {vehicle.aiDisclosures}
                     </p>
                   </div>
+                )}
+
+                {vehicle.saleEvent?.externalLink && (
+                  <a
+                    href={vehicle.saleEvent.externalLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="block w-full bg-action-orange text-white text-center py-3 rounded-lg font-bold hover:bg-orange-600 transition-colors"
+                  >
+                    Bid Now
+                  </a>
                 )}
               </div>
 
