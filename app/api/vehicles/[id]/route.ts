@@ -19,20 +19,17 @@ export async function PATCH(
 
     const updateData: Record<string, unknown> = {}
 
-    // Handle status update
-    if (body.status) {
-      updateData.status = body.status
-    }
-
-    // Handle sale event assignment
-    if (body.saleEventId !== undefined) {
-      updateData.saleEventId = body.saleEventId || null
-    }
-
-    // Handle final sale price (for marking as sold)
-    if (body.finalSalePrice !== undefined) {
-      updateData.finalSalePrice = body.finalSalePrice
-    }
+    // Handle all editable fields
+    if (body.year !== undefined) updateData.year = body.year
+    if (body.make !== undefined) updateData.make = body.make
+    if (body.model !== undefined) updateData.model = body.model
+    if (body.trim !== undefined) updateData.trim = body.trim || null
+    if (body.status !== undefined) updateData.status = body.status
+    if (body.price !== undefined) updateData.price = body.price
+    if (body.aiDisclosures !== undefined) updateData.aiDisclosures = body.aiDisclosures || null
+    if (body.videoUrl !== undefined) updateData.videoUrl = body.videoUrl || null
+    if (body.saleEventId !== undefined) updateData.saleEventId = body.saleEventId || null
+    if (body.finalSalePrice !== undefined) updateData.finalSalePrice = body.finalSalePrice
 
     const updatedVehicle = await prisma.vehicle.update({
       where: { id },

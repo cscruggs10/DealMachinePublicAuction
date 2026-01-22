@@ -59,6 +59,19 @@ export default function AdminDashboard() {
   const [relistModal, setRelistModal] = useState<Vehicle | null>(null)
   const [relistEventId, setRelistEventId] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [editModal, setEditModal] = useState<Vehicle | null>(null)
+  const [editForm, setEditForm] = useState({
+    year: '',
+    make: '',
+    model: '',
+    trim: '',
+    status: '',
+    aiDisclosures: '',
+    videoUrl: '',
+    price: '',
+    saleEventId: '',
+  })
+  const [editUploading, setEditUploading] = useState(false)
 
   useEffect(() => {
     fetchSaleEvents()
@@ -293,6 +306,114 @@ export default function AdminDashboard() {
       fetchVehicles()
     } catch (err) {
       setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to relist' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const openEditModal = (vehicle: Vehicle) => {
+    setEditForm({
+      year: vehicle.year.toString(),
+      make: vehicle.make,
+      model: vehicle.model,
+      trim: vehicle.trim || '',
+      status: vehicle.status,
+      aiDisclosures: '',
+      videoUrl: '',
+      price: vehicle.price?.toString() || '',
+      saleEventId: vehicle.saleEventId || '',
+    })
+    // Fetch full vehicle details including aiDisclosures and videoUrl
+    fetch(`/api/vehicles/${vehicle.id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setEditForm((prev) => ({
+          ...prev,
+          aiDisclosures: data.aiDisclosures || '',
+          videoUrl: data.videoUrl || '',
+        }))
+      })
+    setEditModal(vehicle)
+  }
+
+  const handleEditVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setEditUploading(true)
+    setMessage(null)
+
+    try {
+      const signatureRes = await fetch('/api/upload')
+      if (!signatureRes.ok) {
+        throw new Error('Failed to get upload signature')
+      }
+      const { signature, timestamp, cloudName, apiKey, folder } = await signatureRes.json()
+
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('signature', signature)
+      formData.append('timestamp', timestamp.toString())
+      formData.append('api_key', apiKey)
+      formData.append('folder', folder)
+      formData.append('resource_type', 'video')
+
+      const cloudinaryRes = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      )
+
+      if (!cloudinaryRes.ok) {
+        const error = await cloudinaryRes.json()
+        throw new Error(error.error?.message || 'Failed to upload video')
+      }
+
+      const data = await cloudinaryRes.json()
+      setEditForm({ ...editForm, videoUrl: data.secure_url })
+      setMessage({ type: 'success', text: 'Video uploaded successfully!' })
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to upload video' })
+    } finally {
+      setEditUploading(false)
+    }
+  }
+
+  const handleEditSubmit = async () => {
+    if (!editModal) return
+
+    setLoading(true)
+    setMessage(null)
+
+    try {
+      const res = await fetch(`/api/vehicles/${editModal.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          year: parseInt(editForm.year),
+          make: editForm.make,
+          model: editForm.model,
+          trim: editForm.trim || null,
+          status: editForm.status,
+          price: editForm.price ? parseFloat(editForm.price) : null,
+          aiDisclosures: editForm.aiDisclosures || null,
+          videoUrl: editForm.videoUrl || null,
+          saleEventId: editForm.saleEventId || null,
+        }),
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed to update vehicle')
+      }
+
+      setMessage({ type: 'success', text: 'Vehicle updated successfully!' })
+      setEditModal(null)
+      fetchVehicles()
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to update vehicle' })
     } finally {
       setLoading(false)
     }
@@ -740,7 +861,13 @@ export default function AdminDashboard() {
                             )}
                           </td>
                           <td className="p-3">
-                            <div className="flex gap-1">
+                            <div className="flex gap-1 flex-wrap">
+                              <button
+                                onClick={() => openEditModal(vehicle)}
+                                className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200"
+                              >
+                                Edit
+                              </button>
                               {vehicle.status !== 'SOLD' && (
                                 <button
                                   onClick={() =>
@@ -868,6 +995,153 @@ export default function AdminDashboard() {
                 className="flex-1 btn-primary disabled:opacity-50"
               >
                 {loading ? 'Saving...' : relistEventId ? 'Assign to Event' : 'Move to Inventory'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Vehicle Modal */}
+      {editModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto py-8">
+          <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
+            <h3 className="text-lg font-bold text-slate-brand mb-4">Edit Vehicle</h3>
+            <p className="text-sm text-gray-600 mb-4 font-mono">{editModal.vin}</p>
+
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                  <input
+                    type="number"
+                    value={editForm.year}
+                    onChange={(e) => setEditForm({ ...editForm, year: e.target.value })}
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Make</label>
+                  <input
+                    type="text"
+                    value={editForm.make}
+                    onChange={(e) => setEditForm({ ...editForm, make: e.target.value })}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Model</label>
+                  <input
+                    type="text"
+                    value={editForm.model}
+                    onChange={(e) => setEditForm({ ...editForm, model: e.target.value })}
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Trim</label>
+                  <input
+                    type="text"
+                    value={editForm.trim}
+                    onChange={(e) => setEditForm({ ...editForm, trim: e.target.value })}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <select
+                    value={editForm.status}
+                    onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                    className="w-full"
+                  >
+                    <option value="DRAFT">Draft</option>
+                    <option value="INVENTORY">Inventory</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="SOLD">Sold</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                  <input
+                    type="number"
+                    value={editForm.price}
+                    onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
+                    className="w-full"
+                    step="0.01"
+                    min="0"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Sale Event</label>
+                <select
+                  value={editForm.saleEventId}
+                  onChange={(e) => setEditForm({ ...editForm, saleEventId: e.target.value })}
+                  className="w-full"
+                >
+                  <option value="">-- No Event --</option>
+                  {futureEvents.map((event) => (
+                    <option key={event.id} value={event.id}>
+                      {event.title} ({new Date(event.startDate).toLocaleDateString()})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Video</label>
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    accept="video/mp4,video/mov,video/avi,video/webm"
+                    onChange={handleEditVideoUpload}
+                    disabled={editUploading}
+                    className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-deep-blue file:text-white file:font-semibold hover:file:bg-blue-900 file:cursor-pointer disabled:opacity-50"
+                  />
+                  {editUploading && (
+                    <p className="text-sm text-action-orange">Uploading video...</p>
+                  )}
+                  {editForm.videoUrl && !editUploading && (
+                    <div className="flex items-center gap-2 text-sm text-green-600">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      Video attached
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">AI Disclosures</label>
+                <textarea
+                  value={editForm.aiDisclosures}
+                  onChange={(e) => setEditForm({ ...editForm, aiDisclosures: e.target.value })}
+                  className="w-full h-24"
+                  placeholder="Enter AI-generated disclosures or condition notes..."
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-6">
+              <button
+                onClick={() => setEditModal(null)}
+                className="flex-1 py-2 px-4 border border-gray-300 rounded hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleEditSubmit}
+                disabled={loading || editUploading}
+                className="flex-1 btn-primary disabled:opacity-50"
+              >
+                {loading ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>
