@@ -24,6 +24,7 @@ export async function PATCH(
     if (body.make !== undefined) updateData.make = body.make
     if (body.model !== undefined) updateData.model = body.model
     if (body.trim !== undefined) updateData.trim = body.trim || null
+    if (body.mileage !== undefined) updateData.mileage = body.mileage
     if (body.status !== undefined) updateData.status = body.status
     if (body.price !== undefined) updateData.price = body.price
     if (body.aiDisclosures !== undefined) updateData.aiDisclosures = body.aiDisclosures || null

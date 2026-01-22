@@ -143,6 +143,12 @@ export default async function VehicleDetailPage({ params }: Props) {
                     <span className="font-medium">{vehicle.trim}</span>
                   </div>
                 )}
+                {vehicle.mileage && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Mileage</span>
+                    <span className="font-medium">{Number(vehicle.mileage).toLocaleString()} miles</span>
+                  </div>
+                )}
                 <div className="pt-3 border-t">
                   <p className="text-gray-500 text-sm mb-2">VIN</p>
                   <div className="bg-gray-100 p-2 rounded">

@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    const { vin, year, make, model, trim, status, aiDisclosures, videoUrl, price, saleEventId } = body
+    const { vin, year, make, model, trim, mileage, status, aiDisclosures, videoUrl, price, saleEventId } = body
 
     if (!vin || !year || !make || !model) {
       return NextResponse.json(
@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
         make,
         model,
         trim: trim || null,
+        mileage: mileage ? parseInt(mileage) : null,
         status: status || 'DRAFT',
         aiDisclosures: aiDisclosures || null,
         videoUrl: videoUrl || null,

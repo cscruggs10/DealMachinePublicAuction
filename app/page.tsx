@@ -161,6 +161,9 @@ export default async function Home() {
                     {vehicle.trim && (
                       <p className="text-sm text-gray-500">{vehicle.trim}</p>
                     )}
+                    {vehicle.mileage && (
+                      <p className="text-sm text-gray-500">{Number(vehicle.mileage).toLocaleString()} miles</p>
+                    )}
                   </div>
                   {vehicle.price && (
                     <p className="text-lg font-bold text-action-orange">

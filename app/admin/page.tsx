@@ -21,6 +21,7 @@ interface Vehicle {
   make: string
   model: string
   trim: string | null
+  mileage: number | null
   status: string
   price: number | null
   finalSalePrice: number | null
@@ -45,6 +46,7 @@ export default function AdminDashboard() {
     make: '',
     model: '',
     trim: '',
+    mileage: '',
     status: 'DRAFT',
     aiDisclosures: '',
     videoUrl: '',
@@ -65,6 +67,7 @@ export default function AdminDashboard() {
     make: '',
     model: '',
     trim: '',
+    mileage: '',
     status: '',
     aiDisclosures: '',
     videoUrl: '',
@@ -72,6 +75,8 @@ export default function AdminDashboard() {
     saleEventId: '',
   })
   const [editUploading, setEditUploading] = useState(false)
+  const [analyzing, setAnalyzing] = useState(false)
+  const [editAnalyzing, setEditAnalyzing] = useState(false)
 
   useEffect(() => {
     fetchSaleEvents()
@@ -181,6 +186,84 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleAnalyzeVideo = async () => {
+    if (!vehicleForm.videoUrl) {
+      setMessage({ type: 'error', text: 'Please upload a video first' })
+      return
+    }
+
+    setAnalyzing(true)
+    setMessage(null)
+
+    try {
+      const res = await fetch('/api/analyze-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          videoUrl: vehicleForm.videoUrl,
+          vehicleInfo: {
+            year: vehicleForm.year,
+            make: vehicleForm.make,
+            model: vehicleForm.model,
+            trim: vehicleForm.trim,
+          },
+        }),
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed to analyze video')
+      }
+
+      const data = await res.json()
+      setVehicleForm({ ...vehicleForm, aiDisclosures: data.analysis })
+      setMessage({ type: 'success', text: 'Video analyzed successfully!' })
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to analyze video' })
+    } finally {
+      setAnalyzing(false)
+    }
+  }
+
+  const handleEditAnalyzeVideo = async () => {
+    if (!editForm.videoUrl) {
+      setMessage({ type: 'error', text: 'Please upload a video first' })
+      return
+    }
+
+    setEditAnalyzing(true)
+    setMessage(null)
+
+    try {
+      const res = await fetch('/api/analyze-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          videoUrl: editForm.videoUrl,
+          vehicleInfo: {
+            year: editForm.year,
+            make: editForm.make,
+            model: editForm.model,
+            trim: editForm.trim,
+          },
+        }),
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed to analyze video')
+      }
+
+      const data = await res.json()
+      setEditForm({ ...editForm, aiDisclosures: data.analysis })
+      setMessage({ type: 'success', text: 'Video analyzed successfully!' })
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to analyze video' })
+    } finally {
+      setEditAnalyzing(false)
+    }
+  }
+
   const handleEventSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -226,6 +309,7 @@ export default function AdminDashboard() {
         body: JSON.stringify({
           ...vehicleForm,
           year: parseInt(vehicleForm.year),
+          mileage: vehicleForm.mileage ? parseInt(vehicleForm.mileage) : null,
           price: vehicleForm.price ? parseFloat(vehicleForm.price) : null,
           saleEventId: vehicleForm.saleEventId || null,
         }),
@@ -243,6 +327,7 @@ export default function AdminDashboard() {
         make: '',
         model: '',
         trim: '',
+        mileage: '',
         status: 'DRAFT',
         aiDisclosures: '',
         videoUrl: '',
@@ -317,6 +402,7 @@ export default function AdminDashboard() {
       make: vehicle.make,
       model: vehicle.model,
       trim: vehicle.trim || '',
+      mileage: vehicle.mileage?.toString() || '',
       status: vehicle.status,
       aiDisclosures: '',
       videoUrl: '',
@@ -329,6 +415,7 @@ export default function AdminDashboard() {
       .then((data) => {
         setEditForm((prev) => ({
           ...prev,
+          mileage: data.mileage?.toString() || '',
           aiDisclosures: data.aiDisclosures || '',
           videoUrl: data.videoUrl || '',
         }))
@@ -396,6 +483,7 @@ export default function AdminDashboard() {
           make: editForm.make,
           model: editForm.model,
           trim: editForm.trim || null,
+          mileage: editForm.mileage ? parseInt(editForm.mileage) : null,
           status: editForm.status,
           price: editForm.price ? parseFloat(editForm.price) : null,
           aiDisclosures: editForm.aiDisclosures || null,
@@ -705,6 +793,20 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Mileage
+                </label>
+                <input
+                  type="number"
+                  value={vehicleForm.mileage}
+                  onChange={(e) => setVehicleForm({ ...vehicleForm, mileage: e.target.value })}
+                  className="w-full"
+                  placeholder="e.g., 45000"
+                  min="0"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -781,16 +883,28 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  AI Disclosures
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">
+                    AI Disclosures
+                  </label>
+                  {vehicleForm.videoUrl && (
+                    <button
+                      type="button"
+                      onClick={handleAnalyzeVideo}
+                      disabled={analyzing}
+                      className="text-xs bg-deep-blue text-white px-3 py-1 rounded hover:bg-blue-900 disabled:opacity-50"
+                    >
+                      {analyzing ? 'Analyzing...' : 'Analyze Video with AI'}
+                    </button>
+                  )}
+                </div>
                 <textarea
                   value={vehicleForm.aiDisclosures}
                   onChange={(e) =>
                     setVehicleForm({ ...vehicleForm, aiDisclosures: e.target.value })
                   }
-                  className="w-full h-24"
-                  placeholder="Enter AI-generated disclosures or condition notes..."
+                  className="w-full h-32"
+                  placeholder={vehicleForm.videoUrl ? 'Click "Analyze Video with AI" to auto-generate disclosures, or enter manually...' : 'Upload a video first to enable AI analysis, or enter disclosures manually...'}
                 />
               </div>
 
@@ -1051,6 +1165,18 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mileage</label>
+                <input
+                  type="number"
+                  value={editForm.mileage}
+                  onChange={(e) => setEditForm({ ...editForm, mileage: e.target.value })}
+                  className="w-full"
+                  placeholder="e.g., 45000"
+                  min="0"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
@@ -1119,12 +1245,24 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">AI Disclosures</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">AI Disclosures</label>
+                  {editForm.videoUrl && (
+                    <button
+                      type="button"
+                      onClick={handleEditAnalyzeVideo}
+                      disabled={editAnalyzing}
+                      className="text-xs bg-deep-blue text-white px-3 py-1 rounded hover:bg-blue-900 disabled:opacity-50"
+                    >
+                      {editAnalyzing ? 'Analyzing...' : 'Analyze Video with AI'}
+                    </button>
+                  )}
+                </div>
                 <textarea
                   value={editForm.aiDisclosures}
                   onChange={(e) => setEditForm({ ...editForm, aiDisclosures: e.target.value })}
-                  className="w-full h-24"
-                  placeholder="Enter AI-generated disclosures or condition notes..."
+                  className="w-full h-32"
+                  placeholder={editForm.videoUrl ? 'Click "Analyze Video with AI" to auto-generate disclosures, or enter manually...' : 'Upload a video first to enable AI analysis, or enter disclosures manually...'}
                 />
               </div>
             </div>
