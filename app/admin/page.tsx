@@ -23,7 +23,7 @@ interface Vehicle {
   trim: string | null
   status: string
   price: number | null
-  finalSaleStarting Bid: number | null
+  finalSalePrice: number | null
   saleEvent: SaleEvent | null
   saleEventId: string | null
 }
@@ -55,7 +55,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false)
   const [decoding, setDecoding] = useState(false)
   const [soldModal, setSoldModal] = useState<{ vehicleId: string; vin: string } | null>(null)
-  const [finalStarting Bid, setFinalStarting Bid] = useState('')
+  const [finalPrice, setFinalPrice] = useState('')
   const [relistModal, setRelistModal] = useState<Vehicle | null>(null)
   const [relistEventId, setRelistEventId] = useState('')
   const [uploading, setUploading] = useState(false)
@@ -258,7 +258,7 @@ export default function AdminDashboard() {
   }
 
   const handleMarkAsSold = async () => {
-    if (!soldModal || !finalStarting Bid) return
+    if (!soldModal || !finalPrice) return
 
     setLoading(true)
     try {
@@ -267,7 +267,7 @@ export default function AdminDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           status: 'SOLD',
-          finalSaleStarting Bid: parseFloat(finalStarting Bid),
+          finalSalePrice: parseFloat(finalPrice),
         }),
       })
 
@@ -275,7 +275,7 @@ export default function AdminDashboard() {
 
       setMessage({ type: 'success', text: 'Vehicle marked as sold!' })
       setSoldModal(null)
-      setFinalStarting Bid('')
+      setFinalPrice('')
       fetchVehicles()
     } catch (err) {
       setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to update' })
@@ -850,9 +850,9 @@ export default function AdminDashboard() {
                             )}
                           </td>
                           <td className="p-3">
-                            {vehicle.status === 'SOLD' && vehicle.finalSaleStarting Bid ? (
+                            {vehicle.status === 'SOLD' && vehicle.finalSalePrice ? (
                               <span className="text-green-600 font-medium">
-                                ${Number(vehicle.finalSaleStarting Bid).toLocaleString()}
+                                ${Number(vehicle.finalSalePrice).toLocaleString()}
                               </span>
                             ) : vehicle.price ? (
                               `$${Number(vehicle.price).toLocaleString()}`
@@ -917,12 +917,12 @@ export default function AdminDashboard() {
             <p className="text-sm text-gray-600 mb-4">VIN: {soldModal.vin}</p>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Final Sale Starting Bid *
+                Final Sale Price *
               </label>
               <input
                 type="number"
-                value={finalStarting Bid}
-                onChange={(e) => setFinalStarting Bid(e.target.value)}
+                value={finalPrice}
+                onChange={(e) => setFinalPrice(e.target.value)}
                 className="w-full"
                 placeholder="0.00"
                 step="0.01"
@@ -934,7 +934,7 @@ export default function AdminDashboard() {
               <button
                 onClick={() => {
                   setSoldModal(null)
-                  setFinalStarting Bid('')
+                  setFinalPrice('')
                 }}
                 className="flex-1 py-2 px-4 border border-gray-300 rounded hover:bg-gray-50"
               >
@@ -942,7 +942,7 @@ export default function AdminDashboard() {
               </button>
               <button
                 onClick={handleMarkAsSold}
-                disabled={!finalStarting Bid || loading}
+                disabled={!finalPrice || loading}
                 className="flex-1 btn-primary disabled:opacity-50"
               >
                 {loading ? 'Saving...' : 'Confirm Sale'}
