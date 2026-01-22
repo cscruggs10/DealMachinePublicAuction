@@ -134,7 +134,7 @@ export default async function Home() {
                   </div>
                   {vehicle.price && (
                     <p className="text-lg font-bold text-action-orange">
-                      ${Number(vehicle.price).toLocaleString()}
+                      Starting Bid: ${Number(vehicle.price).toLocaleString()}
                     </p>
                   )}
                 </div>
