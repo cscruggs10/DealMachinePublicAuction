@@ -19,3 +19,21 @@ input, select, textarea {
 .btn-secondary {
   @apply bg-deep-blue text-white font-bold py-2 px-4 rounded hover:bg-blue-900 transition-colors;
 }
+
+/* Marquee animation for partners */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
